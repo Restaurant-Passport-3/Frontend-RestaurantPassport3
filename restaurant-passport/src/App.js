@@ -31,6 +31,7 @@ class App extends Component {
     });
   }
 
+  
   localStorageGet = item =>
     // console.log("LSG", item)
     JSON.parse(localStorage.getItem(item));
