@@ -7,11 +7,12 @@ function Restaurant({ restaurant, setFlipped, deleteRestaurant, flipped }) {
   if (flipped === false) {
     return (
       <>
-        <div className="restaurant-card-front">
+        <div className="restaurant-card-front" key={restaurant.restaurant_id}>
           <PassportEdit
             values={restaurant}
             setFlipped={setFlipped}
             deleteRestaurant={deleteRestaurant}
+            key={restaurant.restaurant_id}
           />
         </div>
       </>
@@ -19,7 +20,7 @@ function Restaurant({ restaurant, setFlipped, deleteRestaurant, flipped }) {
   } else {
     return (
       <>
-        <div className="restaurant-card-back">
+        <div className="restaurant-card-back" key={restaurant.restaurant_id}>
           <img
             className="card-back-img"
             src={restaurant.img_url}

@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import "./App.css";
 import { Route } from "react-router-dom";
-import axiosWithAuth from "./utils";
 
 import PrivateRoute from "./components/PrivateRoute";
 import Navigation from "./components/Navigation";
@@ -23,7 +22,7 @@ class App extends Component {
 
   user_id = localStorage.getItem("user_id");
 
-  componentWillMount() {
+  componentDidMount() {
     // console.log("storage", localStorage);
     this.setState({
       rememberMe: this.localStorageGet("passportRemember") || false,
@@ -43,26 +42,6 @@ class App extends Component {
 
   setFlipped = e => {
     this.setState({flipped: e})
-    // console.log(this.state.passport[0]);
-    // this.setState(...{
-    // });
-    // console.log(e);
-    // console.log("flipped");
-  };
-
-  addToPassport = restaurant => {
-    console.log("added to restaurant", restaurant);
-    const newRestaurant = {
-      restaurant_id: restaurant.id
-    };
-    alert(`You have added ${restaurant.name} to your passport`);
-    axiosWithAuth()
-      .post(
-        `https://rpass.herokuapp.com/api/users/${this.user_id}/passport`,
-        newRestaurant
-      )
-      .then(res => console.log(res))
-      .catch(err => console.log(err));
   };
 
   render() {
@@ -72,6 +51,15 @@ class App extends Component {
         render={(props) => (
           <Navigation props={props} />
         )} />
+
+        <Route exact path="/" render={(props) => (<LoginForm
+            props={props}
+            setLocalStorage={this.localStorageSet}
+            getLocalStorage={this.localStorageGet}
+            remember={this.state.rememberMe}
+            email={this.state.rememberEmail}
+            password={this.state.rememberPassword}
+        />)} />
 
         <Route exact path="/signup" render={(props) => (<SignUpForm
             props={props}
@@ -92,7 +80,7 @@ class App extends Component {
           <PassportForm />
         </Route>
         <PrivateRoute exact path="/passport" component={Passport} setFlipped={this.setFlipped} flipped={this.state.flipped} />
-        <PrivateRoute exact path="/explore" component={Explore} add={this.addToPassport} />
+        <PrivateRoute exact path="/explore" component={Explore} />
       </div>
     );
   }
@@ -110,5 +98,3 @@ export default connect(
       
     }
 )(App);
-
-// date, name, address, city, zip, number, website, rating, notes stamped

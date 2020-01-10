@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import axiosWithAuth from "../utils/index";
+import { connect } from "react-redux";
+import { handleEdit } from "../actions/actions";
 
 function PassportEdit(props) {
   console.log("props", props);
 
-  const user_id = localStorage.getItem("user_id");
+  // const user_id = localStorage.getItem("user_id");
 
   const [passportEdit, setPassportEdit] = useState({
     restaurant_id: props.values.restaurant_id,
@@ -37,13 +38,8 @@ function PassportEdit(props) {
   const handleSubmit = e => {
     e.preventDefault();
     console.log("Sending Put", passportEdit);
-    axiosWithAuth()
-      .put(`/users/${user_id}/passport`, passportEdit)
-      .then(res => {
-        console.log(res);
-        props.setFlipped(true);
-      })
-      .catch(err => console.log(err));
+    props.handleEdit(props.user_id, passportEdit);
+    props.setFlipped(true);
   };
 
   const onClickDelete = e => {
@@ -108,4 +104,18 @@ function PassportEdit(props) {
   );
 }
 
-export default PassportEdit;
+// handleEdit
+const mapStateToProps = state => {
+  return {
+    user_id: state.user_id
+  }
+};
+
+export default connect(
+  mapStateToProps,
+    {
+      handleEdit
+    }
+)(PassportEdit);
+
+// export default PassportEdit;
