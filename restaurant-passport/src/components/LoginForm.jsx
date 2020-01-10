@@ -1,11 +1,11 @@
 import React from "react";
+import { connect } from 'react-redux';
+import { login } from '../actions/actions';
+
 import { withFormik, Form, Field } from "formik";
 import * as yup from "yup";
 
-import axiosWithAuth from "../utils";
-
-function Login({ errors, touched, values, isSubmitting }) {
-  console.log("values", values);
+function Login({ errors, touched, values, loggingIn }) {
 
   return (
     <Form>
@@ -49,23 +49,24 @@ function Login({ errors, touched, values, isSubmitting }) {
         <button
           name="submitBtn"
           type="submit"
-          disabled={isSubmitting}
+          disabled={loggingIn}
           className="login-submitBtn"
         >
-          {!isSubmitting ? "Log In" : "Logging In"}
+          {!loggingIn ? "Log In" : "Logging In"}
         </button>
       </label>
     </Form>
   );
 }
 
-const FormikLogin = withFormik({
+const FormikLog = withFormik({
   mapPropsToValues({
     remember,
     email,
     password,
     setLocalStorage,
-    getLocalStorage
+    getLocalStorage,
+    loggingIn
     // credentials
   }) {
     return {
@@ -73,7 +74,8 @@ const FormikLogin = withFormik({
       email: email,
       password: password,
       setStorage: setLocalStorage,
-      getStorage: getLocalStorage
+      getStorage: getLocalStorage,
+      loggingIn: loggingIn
       // credentials: credentials
     };
   },
@@ -90,18 +92,13 @@ const FormikLogin = withFormik({
       .required("Password Required"),
     remember: yup.boolean().required()
   }),
-  handleSubmit(values, { resetForm, setSubmitting, props }) {
-    // console.log("SubmitValues", values);
-    // console.log("props inside withFormik", props)
-    // * SET LOCAL STORAGE BASED ON REMEMBER email and password changes
+  handleSubmit(values, { props }) {
 
     // Creating payload for login using axiosWithAuth
     const credentials = {
       username: values.email,
       password: values.password
     };
-
-    // console.log("credentials", credentials);
 
     if (
       values.remember === true &&
@@ -111,7 +108,7 @@ const FormikLogin = withFormik({
       values.setStorage("passportRemember", true);
       values.setStorage("passportEmail", values.email);
       values.setStorage("passportPassword", values.password);
-      console.log("Set initial storage", localStorage);
+      // console.log("Set initial storage", localStorage);
     } else if (
       values.remember === true &&
       (values.getStorage("passportEmail") !== values.email ||
@@ -128,20 +125,25 @@ const FormikLogin = withFormik({
       values.setStorage("passportPassword", "");
     }
 
-    setTimeout(() => {
-      axiosWithAuth()
-        .post("/auth/login", credentials)
-        .then(res => {
-          // console.log("Login res", res);
-          localStorage.setItem("token", res.data.token);
-          localStorage.setItem("user_id", res.data.user_id);
-          setSubmitting(false);
-          // console.log(props)
-          props.props.history.push("/passport");
-        })
-        .catch(res => console.log(res))
-        .finally(resetForm());
-    }, 1000);
+    // Login using redux
+    props.login(credentials).then(() => {
+      props.props.history.push("/passport")
+    });
   }
 })(Login);
+
+const mapStateToProps = state => {
+  // console.log('state from redux', state)
+  return {
+    loggingIn: state.loggingIn
+  }
+};
+
+const FormikLogin = connect(
+  mapStateToProps, 
+  {    
+    login
+  }
+)(FormikLog);
+
 export default FormikLogin;

@@ -14,7 +14,7 @@ function Passport({ setFlipped, flipped }) {
     axiosWithAuth()
       .get(`https://rpass.herokuapp.com/api/users/${user_id}/passport`)
       .then(res => {
-        console.log("passport", res.data);
+        // console.log("passport", res.data);
         setList(res.data);
       })
       .catch(err => console.log(err));

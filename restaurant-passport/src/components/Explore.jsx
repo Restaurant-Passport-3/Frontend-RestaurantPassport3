@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import { connect } from "react-redux";
+import { addToPassport, updateExplore } from "../actions/actions";
 
-//todo add new restaurants to state here
+function Explore1(props) {
 
-function Explore({ add }) {
-  const [localList, setLocalList] = useState([]);
   const [input, setInput] = useState({
     search: "",
     location: ""
@@ -12,21 +11,9 @@ function Explore({ add }) {
   const [searchTest, setSearchTest] = useState(false);
 
   useEffect(() => {
-    axios
-      .get(
-        `https://rpass.herokuapp.com/api/explore?search=${input.search}&location=${input.location}`
-      )
-      .then(res => {
-        console.log(res.data);
-        setLocalList(res.data);
-        setInput({
-          search: "",
-          location: ""
-        });
-      })
-      .catch(err => console.log(err));
-      // eslint-disable-next-line
-  }, [searchTest]);
+    props.updateExplore(input)
+    // eslint-disable-next-line
+  }, [searchTest, input.search]);
 
   const onFormSubmit = evt => {
     evt.preventDefault();
@@ -38,6 +25,7 @@ function Explore({ add }) {
       [e.target.name]: e.target.value
     });
   };
+
   return (
     <div className="explore-wrapper">
       <form onSubmit={onFormSubmit} className="explore-search">
@@ -70,7 +58,7 @@ function Explore({ add }) {
         </button>
       </form>
       <div className="explore-list">
-        {localList.map(e => (
+        {props.explore.map(e => (
           <div key={e.id} className="explore-card">
             <img className="explore-img" src={e.img_url} alt={e.name} />
             <h3>{e.name}</h3>
@@ -83,12 +71,27 @@ function Explore({ add }) {
             <p className="explore-card-website">
               <a href={e.website_url}>Website</a>
             </p>
-            <button onClick={() => add(e)}>Add to Passport</button>
+            <button onClick={() => props.addToPassport(e, props.user_id)}>Add to Passport</button>
           </div>
         ))}
       </div>
     </div>
   );
 }
+
+const mapStateToProps = state => {
+  return {    
+    user_id: state.user_id,
+    explore: state.explore
+  }
+};
+
+const Explore = connect(
+  mapStateToProps,
+    {
+      addToPassport,
+      updateExplore
+    }
+)(Explore1);
 
 export default Explore;

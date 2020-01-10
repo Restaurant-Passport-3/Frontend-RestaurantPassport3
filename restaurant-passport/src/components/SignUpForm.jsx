@@ -1,76 +1,59 @@
 import React from "react";
 import { withFormik, Form, Field } from "formik";
 import * as yup from "yup";
+import { connect } from 'react-redux';
+import { register, login } from "../actions/actions";
 
-import axiosWithAuth from "../utils";
+function SignUp({ errors, touched, props }) {
 
-function SignUp({ errors, touched, isSubmitting }) {
-  // const {} = values;
-  // console.log(errors);
   return (
     <div className="signup-form">
       <Form>
         {touched.firstName && errors.firstName && (
           <p className="error">{errors.firstName}</p>
         )}
-        {/* <label name="FirstName" className="signup-label-fname">
-          First Name: */}
         <Field
           className="signup-field-fname field"
           name="firstName"
           placeholder="First Name"
           type="text"
         />
-        {/* </label> */}
         {touched.lastName && errors.lastName && (
           <p className="error">{errors.lastName}</p>
         )}
-        {/* <label className="signup-label-lname">
-          Last Name: */}
         <Field
           className="signup-field-lname field"
           name="lastName"
           placeholder="Last Name"
           type="text"
         />
-        {/* </label> */}
         {touched.email && errors.email && (
           <p className="error">{errors.email}</p>
         )}
-        {/* <label className="signup-label-email">
-          {" "}
-          Email : */}
         <Field
           className="signup-field-email field"
           name="email"
           placeholder="Email"
           type="email"
         />
-        {/* </label> */}
         {touched.password && errors.password && (
           <p className="error">{errors.password}</p>
         )}
-        {/* <label className="signup-label-password">
-          Password: */}
         <Field
           className="signup-field-password field"
           name="password"
           placeholder="Password"
           type="password"
         />
-        {/* </label> */}
         {touched.location && errors.location && (
           <p className="error">{errors.location}</p>
         )}
-        {/* <label className="signup-label-location">
-          Location: */}
         <Field
           className="signup-field-location field"
           name="location"
           placeholder="City/Zip"
           type="text"
         />
-        {/* </label> */}
         <label name="rememberMe" className="signup-label-remember">
           Remember:
           <Field
@@ -84,10 +67,10 @@ function SignUp({ errors, touched, isSubmitting }) {
           <button
             name="submitBtn"
             type="submit"
-            disabled={isSubmitting}
+            disabled={props.loggingIn}
             className="signup-submitBtn"
           >
-            {!isSubmitting ? "Sign Up" : "Processing"}
+            {!props.loggingIn ? "Sign Up" : "Processing and logging in"}
           </button>
         </label>
       </Form>
@@ -95,7 +78,7 @@ function SignUp({ errors, touched, isSubmitting }) {
   );
 }
 
-const FormikSignUp = withFormik({
+const FormikSignUp1 = withFormik({
   mapPropsToValues({ setLocalStorage, getLocalStorage }) {
     return {
       setStorage: setLocalStorage,
@@ -120,10 +103,9 @@ const FormikSignUp = withFormik({
       .required("Password is required"),
     location: yup.string().required("Please enter a city or zip")
   }),
-  handleSubmit(values, { resetForm, setSubmitting, props }) {
-    console.log("SubmitValues", values);
+  handleSubmit(values, { props }) {
 
-    // Creating payload for login using axiosWithAuth
+    // Creating payload for new user using axiosWithAuth
     const newUser = {
       username: values.email,
       email: values.email,
@@ -132,7 +114,10 @@ const FormikSignUp = withFormik({
       location: values.location
     };
 
-    console.log("New User", newUser);
+    const credentials = {
+      username: values.email,
+      password: values.password
+    }
 
     if (
       values.remember === true &&
@@ -144,18 +129,29 @@ const FormikSignUp = withFormik({
       values.setStorage("passportPassword", values.password);
       console.log("SignUp storage", localStorage);
     }
-    setTimeout(() => {
-      axiosWithAuth()
-        .post("/auth/register", newUser)
-        .then(res => {
-          console.log(res);
-          setSubmitting(false);
-          props.props.history.push("/login");
-        })
-        .catch(err => console.log(err))
-        .finally(resetForm());
-    }, 1000);
+
+    // register using redux
+    props.register(newUser).then(() => {
+      props.login(credentials).then(() => {
+        props.props.history.push("/explore")
+      })
+    });
   }
 })(SignUp);
+
+const mapStateToProps = state => {
+  // console.log('state from redux', state)
+  return {
+    loggingIn: state.loggingIn
+  }
+};
+
+const FormikSignUp = connect(
+  mapStateToProps, 
+  {    
+    register,
+    login
+  }
+)(FormikSignUp1);
 
 export default FormikSignUp;
